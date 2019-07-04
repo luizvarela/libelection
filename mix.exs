@@ -28,7 +28,7 @@ defmodule Libelection.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [mod: {Election.App, []}, extra_applications: [:logger, :poison]]
+    [extra_applications: [:logger, :poison]]
   end
 
   # Dependencies can be Hex packages:

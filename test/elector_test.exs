@@ -12,7 +12,7 @@ defmodule Election.ElectorTest do
   end
 
   defmodule Election.MockStrategyRemoteNode do
-    def leader(_nodes, _config), do: %{node: :"some@othernode", metadata: %{}}
+    def leader(_nodes, _config), do: %{node: :some@othernode, metadata: %{}}
   end
 
   alias Election.{MockStrategy, MockStrategyFailed, MockStrategyRemoteNode}
@@ -27,7 +27,8 @@ defmodule Election.ElectorTest do
     end
 
     test "initializes the leader as nil" do
-      {:ok, pid} = Subject.start_link(Map.merge(@default_opts, %{name: :elector, first_election_in: 5_000}))
+      {:ok, pid} =
+        Subject.start_link(Map.merge(@default_opts, %{name: :elector, first_election_in: 5_000}))
 
       assert Subject.leader(pid) == nil
     end
@@ -52,14 +53,15 @@ defmodule Election.ElectorTest do
 
       first_election_in = 200
 
-      {:ok, pid} = Subject.start_link(Map.merge(@default_opts, %{first_election_in: first_election_in}))
+      {:ok, pid} =
+        Subject.start_link(Map.merge(@default_opts, %{first_election_in: first_election_in}))
 
       {election_happened_in, _} =
         :timer.tc(fn ->
           receive do
             {:trace, ^pid, :receive, :timeout} -> :ok
           after
-              400 -> raise "Did not start the first election in the configured time frame"
+            400 -> raise "Did not start the first election in the configured time frame"
           end
         end)
 
@@ -97,7 +99,7 @@ defmodule Election.ElectorTest do
     test "when the strategy fails to elect, it does not update the strategy" do
       {:ok, pid} = Subject.start_link(Map.merge(@default_opts, %{strategy: MockStrategyFailed}))
 
-      leader = :"somenode@somehost"
+      leader = :somenode@somehost
       :sys.replace_state(pid, fn state -> %{state | leader: leader} end)
 
       Subject.elect(pid)
@@ -116,8 +118,13 @@ defmodule Election.ElectorTest do
 
   describe "leader/1 when the current node is not leader" do
     test "does not return the current node" do
-      remote_node = :"somenode@somehost"
-      opts = Map.merge(@default_opts, %{strategy: MockStrategyRemoteNode, list_nodes: fn -> [node(), remote_node] end})
+      remote_node = :somenode@somehost
+
+      opts =
+        Map.merge(@default_opts, %{
+          strategy: MockStrategyRemoteNode,
+          list_nodes: fn -> [node(), remote_node] end
+        })
 
       {:ok, pid} = Subject.start_link(opts)
 
@@ -135,8 +142,14 @@ defmodule Election.ElectorTest do
 
   describe "leader?/1 when the current node is not leader" do
     test "returns false" do
-      remote_node = :"somenode@somehost"
-      opts = Map.merge(@default_opts, %{strategy: MockStrategyRemoteNode, list_nodes: fn -> [node(), remote_node] end})
+      remote_node = :somenode@somehost
+
+      opts =
+        Map.merge(@default_opts, %{
+          strategy: MockStrategyRemoteNode,
+          list_nodes: fn -> [node(), remote_node] end
+        })
+
       {:ok, pid} = Subject.start_link(opts)
 
       assert Subject.leader?(pid) == false

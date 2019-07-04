@@ -1,14 +1,20 @@
-defmodule Election.App do
+defmodule Election.Supervisor do
   @moduledoc false
-  use Application
 
-  import Supervisor.Spec, warn: false
+  use Supervisor
 
   alias Election.Config
 
-  def start(_type, _args) do
-    Supervisor.start_link(child_specs(), strategy: :one_for_one, name: Election.Supervisor)
+  def start_link(init_arg) do
+    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  defp child_specs, do: [worker(Election.Elector, [Config.fetch_config()])]
+  @impl true
+  def init(init_arg) do
+    children = [
+      {Election.Elector, init_arg}
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
+  end
 end
